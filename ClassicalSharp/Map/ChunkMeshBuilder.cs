@@ -101,14 +101,17 @@ namespace ClassicalSharp {
 			return allAir || allSolid;
 		}
 		
-		public void GetDrawInfo( int x, int y, int z, ref ChunkPartInfo[] normalParts, ref ChunkPartInfo[] translucentParts ) {
+		public void GetDrawInfo( int x, int y, int z, ref ChunkPartInfo[] normalParts, 
+		                        ref ChunkPartInfo[] translucentParts, ref byte occlusionFlags ) {
 			if( !BuildChunk( x, y, z ) )
 				return;
-			
+						
 			for( int i = 0; i < arraysCount; i++ ) {
 				SetPartInfo( drawInfoNormal[i], i, ref normalParts );
 				SetPartInfo( drawInfoTranslucent[i], i, ref translucentParts );
 			}
+			if( normalParts != null || translucentParts != null )
+				occlusionFlags = 0;//(byte)ComputeOcclusion();
 		}
 
 		public void RenderTile( int chunkIndex, int xx, int yy, int zz, int x, int y, int z ) {
@@ -156,15 +159,16 @@ namespace ClassicalSharp {
 			int xMax = Math.Min( width, x1 + chunkSize );
 			int yMax = Math.Min( height, y1 + chunkSize );
 			int zMax = Math.Min( length, z1 + chunkSize );
+			
 			for( int y = y1, yy = 0; y < yMax; y++, yy++ ) {
 				for( int z = z1, zz = 0; z < zMax; z++, zz++ ) {
 					
-					int chunkIndex = ( yy + 1 ) * extChunkSize2 + ( zz + 1 ) * extChunkSize + ( -1 + 1 );
+					int chunkIndex = (yy + 1) * extChunkSize2 + (zz + 1) * extChunkSize + (-1 + 1);
 					for( int x = x1, xx = 0; x < xMax; x++, xx++ ) {
 						chunkIndex++;
 						byte tile = chunk[chunkIndex];
 						if( tile == 0 ) continue;
-						int countIndex = ( ( yy << 8 ) + ( zz << 4 ) + xx ) * TileSide.Sides;
+						int countIndex = ((yy << 8) + (zz << 4) + xx) * TileSide.Sides;
 						
 						// Sprites only use one face to indicate stretching count, so we can take a shortcut here.
 						// Note that sprites are not drawn with any of the DrawXFace, they are drawn using DrawSprite.
